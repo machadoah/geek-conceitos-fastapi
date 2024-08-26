@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, status, Path
+from fastapi import FastAPI, HTTPException, status, Path, Query
 
 from geek_conceitos_fastapi.models import CursoBD
 
@@ -55,3 +55,7 @@ async def delete_curso(curso_id: int):
     else:
         del cursos[curso_id]
         return f'curso de id {curso_id} deletado.'
+
+@app.get('/calc')
+async def calc(a: int = Query(default=0), b: int = Query(default=0), c: int = Query(default=0)):
+    return {'result': a + b + c}
