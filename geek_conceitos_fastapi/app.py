@@ -43,7 +43,7 @@ async def create_curso(curso: CursoBD):
 @app.put("/cursos/{curso_id}")
 async def update_curso(curso_id: int, curso: CursoBD):
     if curso_id not in cursos:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Curso não existe.')
     else:
         cursos[curso_id] = curso.model_dump()
         return curso
