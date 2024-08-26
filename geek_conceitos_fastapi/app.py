@@ -1,6 +1,6 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Path
 
-from geek_conceitos_fastapi.models import Curso, CursoBD
+from geek_conceitos_fastapi.models import CursoBD
 
 app = FastAPI()
 
@@ -22,7 +22,7 @@ async def get_cursos():
 
 
 @app.get("/cursos/{curso_id}")
-async def get_curso(curso_id: int):
+async def get_curso(curso_id: int = Path(title='ID do curso', description='Deve se inteiro', gt=0, lt=3)):
     if curso_id not in cursos:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Curso não encontrado."
