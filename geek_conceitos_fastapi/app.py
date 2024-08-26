@@ -1,16 +1,16 @@
+from typing import Dict, List
+
 from fastapi import FastAPI, HTTPException, status, Path, Query, Header, Depends
 
-from geek_conceitos_fastapi.models import CursoBD
+from geek_conceitos_fastapi.models import CursoBD, Curso, cursos
 
 from time import sleep
 
-app = FastAPI()
-
-
-cursos = {
-    1: {"aulas": 20, "horas": 10, "titulo": "LlamaIndex - Introdução"},
-    2: {"aulas": 15, "horas": 8, "titulo": "FastAPI - Introdução"},
-}
+app = FastAPI(
+    title="API de Cursos",
+    version="0.1.0",
+    description="Uma API para estudo do **FastAPI**",
+)
 
 
 def fake_db():
@@ -27,54 +27,59 @@ async def root(db=Depends(fake_db)):
     return {"message": "Hello World"}
 
 
-@app.get("/cursos")
+@app.get(
+    path="/cursos",
+    response_model=List[Curso],
+    description="Retorna todos os cursos ou uma lista vazia.",
+    summary="Retorna todos os cursos",
+)
 async def get_cursos(db=Depends(fake_db)):
     return cursos
 
 
 @app.get("/cursos/{curso_id}")
 async def get_curso(
-    curso_id: int = Path(
-        title="ID do curso", description="Deve se inteiro", gt=0, lt=3
-    ),
+    curso_id: int = Path(title="ID do curso", description="Deve se inteiro"),
     db=Depends(fake_db),
 ):
-    if curso_id not in cursos:
+    curso = [curso for curso in cursos if curso.id == curso_id]
+    if not curso:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Curso não encontrado."
         )
 
-    curso = cursos[curso_id]
     return curso
 
 
-@app.post("/cursos", status_code=status.HTTP_201_CREATED)
+@app.post("/cursos", status_code=status.HTTP_201_CREATED, response_model=CursoBD)
 async def create_curso(curso: CursoBD, db=Depends(fake_db)):
     id = len(cursos) + 1
-    cursos[id] = curso.model_dump()
+    cursos.append(Curso(id=id, **curso.model_dump()))
 
     return curso
 
 
 @app.put("/cursos/{curso_id}")
 async def update_curso(curso_id: int, curso: CursoBD, db=Depends(fake_db)):
-    if curso_id not in cursos:
+    curso_found = [curso for curso in cursos if curso.id == curso_id]
+    if not curso_found:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Curso não existe."
+            status_code=status.HTTP_404_NOT_FOUND, detail="Curso não encontrado."
         )
-    else:
-        cursos[curso_id] = curso.model_dump()
-        return curso
+
+    cursos[curso_id - 1] = curso
+    return curso
 
 
 @app.delete("/cursos/{curso_id}")
 async def delete_curso(curso_id: int, db=Depends(fake_db)):
-    if curso_id not in cursos:
+    curso = [curso for curso in cursos if curso.id == curso_id]
+    if not curso:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Curso não existe."
+            status_code=status.HTTP_404_NOT_FOUND, detail="Curso não encontrado."
         )
     else:
-        del cursos[curso_id]
+        del cursos[curso_id - 1]
         return f"curso de id {curso_id} deletado."
 
 
