@@ -47,3 +47,11 @@ async def update_curso(curso_id: int, curso: CursoBD):
     else:
         cursos[curso_id] = curso.model_dump()
         return curso
+
+@app.delete("/cursos/{curso_id}")
+async def delete_curso(curso_id: int):
+    if curso_id not in cursos:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Curso não existe.')
+    else:
+        del cursos[curso_id]
+        return f'curso de id {curso_id} deletado.'
