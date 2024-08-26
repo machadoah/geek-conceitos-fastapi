@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, status, Path, Query
+from fastapi import FastAPI, HTTPException, status, Path, Query, Header
 
 from geek_conceitos_fastapi.models import CursoBD
 
@@ -22,7 +22,9 @@ async def get_cursos():
 
 
 @app.get("/cursos/{curso_id}")
-async def get_curso(curso_id: int = Path(title='ID do curso', description='Deve se inteiro', gt=0, lt=3)):
+async def get_curso(
+    curso_id: int = Path(title="ID do curso", description="Deve se inteiro", gt=0, lt=3)
+):
     if curso_id not in cursos:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Curso não encontrado."
@@ -43,19 +45,31 @@ async def create_curso(curso: CursoBD):
 @app.put("/cursos/{curso_id}")
 async def update_curso(curso_id: int, curso: CursoBD):
     if curso_id not in cursos:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Curso não existe.')
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Curso não existe."
+        )
     else:
         cursos[curso_id] = curso.model_dump()
         return curso
 
+
 @app.delete("/cursos/{curso_id}")
 async def delete_curso(curso_id: int):
     if curso_id not in cursos:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Curso não existe.')
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Curso não existe."
+        )
     else:
         del cursos[curso_id]
-        return f'curso de id {curso_id} deletado.'
+        return f"curso de id {curso_id} deletado."
 
-@app.get('/calc')
-async def calc(a: int = Query(default=0), b: int = Query(default=0), c: int = Query(default=0)):
-    return {'result': a + b + c}
+
+@app.get("/calc")
+async def calc(
+    a: int = Query(default=0),
+    b: int = Query(default=0),
+    c: int = Query(default=0),
+    x_header: str = Header(default=None),
+):
+    print(f"X-HEADER = {x_header}")
+    return {"result": a + b + c}
