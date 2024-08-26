@@ -1,6 +1,8 @@
-from fastapi import FastAPI, HTTPException, status, Path, Query, Header
+from fastapi import FastAPI, HTTPException, status, Path, Query, Header, Depends
 
 from geek_conceitos_fastapi.models import CursoBD
+
+from time import sleep
 
 app = FastAPI()
 
@@ -11,19 +13,31 @@ cursos = {
 }
 
 
+def fake_db():
+    try:
+        print("Abrindo conexão com banco de dados ...")
+        sleep(1)
+    finally:
+        print("Fechando conexão com banco de dados ...")
+        sleep(1)
+
+
 @app.get("/")
-async def root():
+async def root(db=Depends(fake_db)):
     return {"message": "Hello World"}
 
 
 @app.get("/cursos")
-async def get_cursos():
+async def get_cursos(db=Depends(fake_db)):
     return cursos
 
 
 @app.get("/cursos/{curso_id}")
 async def get_curso(
-    curso_id: int = Path(title="ID do curso", description="Deve se inteiro", gt=0, lt=3)
+    curso_id: int = Path(
+        title="ID do curso", description="Deve se inteiro", gt=0, lt=3
+    ),
+    db=Depends(fake_db),
 ):
     if curso_id not in cursos:
         raise HTTPException(
@@ -35,7 +49,7 @@ async def get_curso(
 
 
 @app.post("/cursos", status_code=status.HTTP_201_CREATED)
-async def create_curso(curso: CursoBD):
+async def create_curso(curso: CursoBD, db=Depends(fake_db)):
     id = len(cursos) + 1
     cursos[id] = curso.model_dump()
 
@@ -43,7 +57,7 @@ async def create_curso(curso: CursoBD):
 
 
 @app.put("/cursos/{curso_id}")
-async def update_curso(curso_id: int, curso: CursoBD):
+async def update_curso(curso_id: int, curso: CursoBD, db=Depends(fake_db)):
     if curso_id not in cursos:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Curso não existe."
@@ -54,7 +68,7 @@ async def update_curso(curso_id: int, curso: CursoBD):
 
 
 @app.delete("/cursos/{curso_id}")
-async def delete_curso(curso_id: int):
+async def delete_curso(curso_id: int, db=Depends(fake_db)):
     if curso_id not in cursos:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Curso não existe."
