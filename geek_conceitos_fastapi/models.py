@@ -7,3 +7,9 @@ class Curso(BaseModel):
     titulo: str
     aulas: int
     horas: int
+
+
+class CursoBD(BaseModel):
+    titulo: str
+    aulas: int
+    horas: int
